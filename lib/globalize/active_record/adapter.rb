@@ -40,8 +40,12 @@ module Globalize
           translation = record.translations_by_locale[locale] ||
                         record.translations.build(locale: locale.to_s)
           attrs.each do |name, value|
-            value = value.val if value.is_a?(Arel::Nodes::Casted)
-            translation[name] = value
+            method_name = "#{name}="
+            if translation.respond_to? method_name
+              translation.public_send(method_name, value)
+            else
+              translation[name] = value
+            end
           end
 
           ensure_foreign_key_for(translation)
